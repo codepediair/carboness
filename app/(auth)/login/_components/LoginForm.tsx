@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,11 +13,15 @@ import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { error } from "console";
 import { GithubIcon, Loader, LogIn } from "lucide-react";
-import { useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 export function LoginForm() {
-    const [githubPending, startGithubTransition] = useTransition();
+  const router = useRouter()
+  const [githubPending, startGithubTransition] = useTransition();
+  const [emailPending, startEmailTransition] = useTransition();
+  const [email, setEmail] = useState("");
 
   async function signInWithGithub() {
     startGithubTransition(async () => {
@@ -35,8 +39,26 @@ export function LoginForm() {
       });
     });
   }
+
+  function signInWithEmail() {
+    startEmailTransition(async () => {
+      await authClient.emailOtp.sendVerificationOtp({
+        email: email,
+        type: 'sign-in',
+        fetchOptions: {
+          onSuccess: () => {
+            toast.success('Email sent')
+            router.push('/verify-request')
+          },
+          onError: () => {
+            toast.error('Error sending Email')
+          }
+        }
+      })
+    })
+  }
   return (
-     <Card>
+    <Card>
       <CardHeader>
         <CardTitle>Welcome to Carboness</CardTitle>
         <CardDescription>Login with Github or Email Account</CardDescription>
@@ -71,12 +93,18 @@ export function LoginForm() {
         <div className="grid gap-3">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
-            <Input type="email" placeholder="m@example.com" />
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              placeholder="m@example.com"
+              required
+            />
           </div>
 
-          <Button>Continue with Email</Button>
+          <Button onClick={signInWithEmail} disabled={emailPending}>Continue with Email</Button>
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }
