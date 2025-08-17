@@ -17,7 +17,7 @@ import { NextRequest } from "next/server";
 
 // The arcjet instance is created outside of the handler
 const aj = arcjet({
-  key: env.ARCJET_KEY, // Get your site key from https://app.arcjet.com
+  key: process.env.ARCJET_KEY as string, // Get your site key from https://app.arcjet.com
   characteristics: ["fingerprint"],
   rules: [
     // Protect against common attacks with Arcjet Shield. Other rules are
