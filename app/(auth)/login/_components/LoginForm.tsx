@@ -12,13 +12,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { error } from "console";
-import { GithubIcon, Loader, LogIn } from "lucide-react";
+import { GithubIcon, Loader, Loader2, LogIn, Send } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 export function LoginForm() {
-  const router = useRouter()
+  const router = useRouter();
   const [githubPending, startGithubTransition] = useTransition();
   const [emailPending, startEmailTransition] = useTransition();
   const [email, setEmail] = useState("");
@@ -44,18 +44,18 @@ export function LoginForm() {
     startEmailTransition(async () => {
       await authClient.emailOtp.sendVerificationOtp({
         email: email,
-        type: 'sign-in',
+        type: "sign-in",
         fetchOptions: {
           onSuccess: () => {
-            toast.success('Email sent')
-            router.push('/verify-request')
+            toast.success("Email sent");
+            router.push(`/verify-request?email=${email}`);
           },
           onError: () => {
-            toast.error('Error sending Email')
-          }
-        }
-      })
-    })
+            toast.error("Error sending Email");
+          },
+        },
+      });
+    });
   }
   return (
     <Card>
@@ -102,7 +102,19 @@ export function LoginForm() {
             />
           </div>
 
-          <Button onClick={signInWithEmail} disabled={emailPending}>Continue with Email</Button>
+          <Button onClick={signInWithEmail} disabled={emailPending}>
+            {emailPending ? (
+              <>
+                <Loader2 className="size-4 animate-spin" />
+                <span>Loading ...</span>
+              </>
+            ) : (
+              <>
+                <Send className="size-4" />
+                <span>Continue with Email</span>
+              </>
+            )}
+          </Button>
         </div>
       </CardContent>
     </Card>
