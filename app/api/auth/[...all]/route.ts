@@ -15,7 +15,7 @@ import arcjet, {
 import { toNextJsHandler } from "better-auth/next-js";
 import { NextRequest } from "next/server";
 
-// The arcjet instance is created outside of the handler
+// The arcjet instance is created outside of the handler 
 const aj = arcjet({
   key: process.env.ARCJET_KEY as string, // Get your site key from https://app.arcjet.com
   characteristics: ["fingerprint"],
