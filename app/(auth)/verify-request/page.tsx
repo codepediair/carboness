@@ -23,11 +23,11 @@ export default function VerifyRequest() {
   const router = useRouter();
   const [otp, setOtp] = useState("");
   const [emailPending, startTransition] = useTransition();
-  const params = useSearchParams();
-  const email = params.get("email") as string;
   const isOtpCompleted = otp.length === 6;
 
   function verifyOtp() {
+    const params = useSearchParams();
+    const email = params.get("email") as string;
     startTransition(async () => {
       await authClient.signIn.emailOtp({
         email: email,
@@ -84,10 +84,10 @@ export default function VerifyRequest() {
         >
           {emailPending ? (
             <>
-            <Loader2 className="size-2 animate-spin" />
-            <span>Loading ...</span>
+              <Loader2 className="size-2 animate-spin" />
+              <span>Loading ...</span>
             </>
-          ):(
+          ) : (
             "Verify Account"
           )}
         </Button>
