@@ -15,14 +15,14 @@ const links = [
         title: 'Customers',
         href: '#',
     },
-    {
-        title: 'Pricing',
-        href: '#',
-    },
-    {
-        title: 'Help',
-        href: '#',
-    },
+    // {
+    //     title: 'Pricing',
+    //     href: '#',
+    // },
+    // {
+    //     title: 'Help',
+    //     href: '#',
+    // },
     {
         title: 'About',
         href: '#',
