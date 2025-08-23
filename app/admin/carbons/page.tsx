@@ -11,7 +11,7 @@ export default function CarbonsPage() {
       </div>
 
       <div>
-        <p>Here you will see all of the carbons</p>
+        <h1>Here you will see all of the carbons</h1>
       </div>
     </>
   )
