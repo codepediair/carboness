@@ -5,70 +5,62 @@ import {
   varchar,
   text,
   decimal,
-  date,
+  real,
+  timestamp,
 } from 'drizzle-orm/pg-core';
 
 import { user } from '@/db/schema/auth-schema'
+import { desc } from 'drizzle-orm';
 
-export const categories = pgTable('categories', {
-  category_id: serial('category_id').primaryKey(),
+export const calulation_categories = pgTable('calculation_categories', {
+  id: serial('id').primaryKey(),
   name: varchar('name', { length: 255 }).notNull(),
   description: text('description'),
 });
 
-export const subcategories = pgTable('subcategories', {
-  subcategory_id: serial('subcategory_id').primaryKey(),
-  category_id: integer('category_id')
-    .notNull()
-    .references(() => categories.category_id),
-  name: varchar('name', { length: 255 }).notNull(),
-  description: text('description'),
-});
-
-export const activities = pgTable('activities', {
-  activity_id: serial('activity_id').primaryKey(),
-  subcategory_id: integer('subcategory_id')
-    .notNull()
-    .references(() => subcategories.subcategory_id),
-  name: varchar('name', { length: 255 }).notNull(),
-  unit: varchar('unit', { length: 50 }).notNull(), // e.g. 'liter', 'm3', 'kWh', 'ton'
-});
-
-export const emission_factors = pgTable('emission_factors', {
-  ef_id: serial('ef_id').primaryKey(),
-  source_ref: varchar('source_ref', { length: 100 }).notNull(), // IPCC, DEFRA, TEİAŞ
-  activity_id: integer('activity_id')
-    .references(() => activities.activity_id),
-  gas_type: varchar('gas_type', { length: 10 }).notNull(), // 'CO2', 'CH4', 'N2O', 'tCO2e'
-  value: decimal('value', { precision: 12, scale: 6 }).notNull(),
-  unit_of_factor: varchar('unit_of_factor', { length: 50 }).notNull(), 
-  // e.g. 'kg CO2e/liter', 'kg/kWh'
-});
-
-export const emission_records = pgTable('emission_records', {
-  record_id: serial('record_id').primaryKey(),
-  activity_id: integer('activity_id')
-    .notNull()
-    .references(() => activities.activity_id),
-  ef_id: integer('ef_id')
-    .notNull()
-    .references(() => emission_factors.ef_id),
-  quantity: decimal('quantity', { precision: 14, scale: 4 }).notNull(),
-  record_date: date('record_date').notNull(),
-  computed_emission: decimal('computed_emission', { precision: 14, scale: 4 }),
-  notes: text('notes'),
-
-  // join to users
-  user_id: text('user_id')
+export const emission_source = pgTable('emission_source', {
+  id: serial('id').primaryKey(),
+  categoryId: integer('category_id')
   .notNull()
-  .references(() => user.id)
-});
-
-export const formula_templates = pgTable('formula_templates', {
-  formula_id: serial('formula_id').primaryKey(),
-  category_id: integer('category_id')
-    .notNull()
-    .references(() => categories.category_id),
-  template: text('template').notNull(),  // e.g. '{Q} * {EF} / 1000'
+  .references(() => calulation_categories.id),
+  name : varchar('name', { length: 255 }).notNull(),
+  type: varchar('type', {  length: 255 }).notNull(),
   description: text('description'),
-});
+})
+
+export const emission_factor = pgTable('emission_factor', {
+  id: serial('id').primaryKey(),
+  sourceId: integer('source_id')
+  .notNull()
+  .references(() => emission_source.id),
+  unit: varchar('unit', { length: 100 }).notNull(),
+  co2Factor: real('co2_factor'),
+  ch4Factor: real('ch4_factor'),
+  n2oFactor: real('n2o_factor'),
+  reference: varchar('reference', { length: 255 }),
+  year: integer('year'),
+})
+
+export const activity_data = pgTable('activity_data', {
+  id: serial('id').primaryKey(),
+  sourceId: integer('source_id')
+  .notNull()
+  .references(() => emission_source.id),
+  quantity: real('quantity'),
+  costCurrency: varchar('cost_currency', { length: 100 }),
+  createAt : timestamp("create_at")
+  .$defaultFn(() => /* @__PURE__@ */ new Date())
+  .notNull(),
+  description: text('description'),
+})
+
+export const emission_calculation = pgTable('emission_calculation', {
+  id: serial('id').primaryKey(),
+  activityId: integer('activity_id')
+  .notNull()
+  .references(() => activity_data.id),
+  factorId: integer('factor_id')
+  .notNull()
+  .references(() => emission_factor.id),
+  totalEmission: decimal('total_emission').notNull(),
+})
