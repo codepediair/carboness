@@ -13,7 +13,7 @@ import { Menu, X } from "lucide-react";
 const navigationItems = [
   { name: "Home", href: "/" },
   { name: "Docs", href: "/docs" },
-  { name: "Dashboard", href: "/dashboard" },
+  { name: "Dashboard", href: "/admin" },
 ];
 
 export default function Navbar() {
