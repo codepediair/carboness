@@ -1,73 +1,98 @@
-import { pgTable, text, timestamp, boolean, integer, decimal, real, jsonb, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, numeric, pgEnum, uuid } from "drizzle-orm/pg-core";
 import { user } from "@/db/schema/auth-schema"
+import { relations } from "drizzle-orm";
 
-// 1. Categories and SubCategories
+// ---- Enums ----
+export const unitEnum = pgEnum("unit", ["m3", "liter", "gallon", "kg", "ton"]);
+export const scopeEnum = pgEnum("scope", ["directly", "indirectly", "inChain"]);
+
+// ---- Category Table ----
 export const category = pgTable("category", {
-  id: text("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
   createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
   updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
 });
+
+// ---- SubCategory Table ----
 export const subCategory = pgTable("sub_category", {
-  id: text("id").primaryKey(),
-  categoryId: text("category_id")
+  id: uuid("id").defaultRandom().primaryKey(),
+  categoryId: uuid("category_id")
     .notNull()
     .references(() => category.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   description: text("description"),
-  createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
 });
 
-// 2. Emission Factors
+// ---- Emission Factor Table ----
 export const emissionFactor = pgTable("emission_factor", {
-  id: text("id").primaryKey(),
-  subCategoryId: text("sub_category_id")
+  id: uuid("id").defaultRandom().primaryKey(),
+  subCategoryId: uuid("sub_category_id")
     .notNull()
     .references(() => subCategory.id, { onDelete: "cascade" }),
   gasType: text("gas_type").notNull(), // CO2, CH4, N2O
-  value: numeric("value").notNull(),
+  value: numeric("value", { precision: 12, scale: 6 }).notNull(),
   unit: text("unit").notNull(),
   source: text("source"),
   year: integer("year"),
-  createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
-  updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// 3. User Inputs
+// ---- User Input Table ----
 export const userInput = pgTable("user_input", {
-  id: text("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
-  subCategoryId: text("sub_category_id")
+  subCategoryId: uuid("sub_category_id")
     .notNull()
     .references(() => subCategory.id, { onDelete: "cascade" }),
-  quantity: numeric("quantity").notNull(),
-  unit: text("unit").notNull(),
+  amount: numeric("quantity").notNull(),
+  unit: unitEnum("unit").notNull(),
+  scope: scopeEnum("scope").notNull(),
   date: timestamp("date").notNull(),
+  note: text("note"), // for metadata
   createdAt: timestamp("created_at").$defaultFn(() => new Date()).notNull(),
   updatedAt: timestamp("updated_at").$defaultFn(() => new Date()).notNull(),
 });
 
+export const userInputRelations = relations(userInput, ({ one, many }) => ({
+  subCategory: one(subCategory, {
+    fields: [userInput.subCategoryId],
+    references: [subCategory.id],
+  }),
+  calculations: many(calculation),
+}));
 
-// 4. Calculation Results
 export const calculation = pgTable("calculation", {
-  id: text("id").primaryKey(),
-  inputId: text("input_id")
+  id: uuid("id").defaultRandom().primaryKey(),
+  inputId: uuid("input_id")
     .notNull()
     .references(() => userInput.id, { onDelete: "cascade" }),
-  emissionFactorId: text("emission_factor_id")
+  emissionFactorId: uuid("emission_factor_id")
     .notNull()
     .references(() => emissionFactor.id, { onDelete: "cascade" }),
   co2e: numeric("co2e").notNull(),
   calculationDate: timestamp("calculation_date").notNull(),
 });
 
-// 5. Reports for publishing and save
+export const calculationRelations = relations(calculation, ({ one }) => ({
+  userInput: one(userInput, {
+    fields: [calculation.inputId],
+    references: [userInput.id],
+  }),
+  emissionFactor: one(emissionFactor, {
+    fields: [calculation.emissionFactorId],
+    references: [emissionFactor.id],
+  }),
+}));
+
 export const report = pgTable("report", {
-  id: text("id").primaryKey(),
+  id: uuid("id").defaultRandom().primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
