@@ -1,6 +1,30 @@
 "use client";
 
-import { Button, buttonVariants } from "@/components/ui/button";
+import * as React from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { userInputSchema } from "@/lib/zodSchema";
+import { z } from "zod";
+import { toast } from "sonner";
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { useSearchParams } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -8,204 +32,255 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  activityDataSchema,
-  activityDataSchemaType,
-  scopeEnum,
-  unitEnum,
-} from "@/lib/zodSchema";
-import { ArrowLeft, PlusIcon, SparkleIcon } from "lucide-react";
-import Link from "next/link";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import slugify from "slugify";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
-export default function CarbonCreationPage() {
-  // 1. Define your form.
-  const form = useForm<activityDataSchemaType>({
-    resolver: zodResolver(activityDataSchema),
+type FormValues = z.infer<typeof userInputSchema>;
+type SubCategoryOption = { id: string; name: string };
+
+export default function UserInputForm() {
+  const searchParams = useSearchParams();
+  const categoryId = searchParams.get("categoryId");
+  const [loading, setLoading] = React.useState(false);
+  const [subCategories, setSubCategories] = React.useState<SubCategoryOption[]>(
+    []
+  );
+  const [loadingSubs, setLoadingSubs] = React.useState(true);
+
+  // Fetch subcategories
+  React.useEffect(() => {
+    let mounted = true;
+    if (!categoryId) {
+      toast("error", {
+        description: "category id not valid or not found",
+      });
+      setLoadingSubs(false);
+      // return;
+    }
+    (async () => {
+      try {
+        const res = await fetch(categoryId ? `/api/sub-category?categoryId=${categoryId}`: "/api/sub-category");
+        // const res = await fetch(url);
+        const data: SubCategoryOption[] = await res.json();
+        if (mounted) setSubCategories(data);
+      } catch {
+        toast("error", {
+          description: "Failed to load subcategories",
+        });
+      } finally {
+        if (mounted) setLoadingSubs(false);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [categoryId]);
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(userInputSchema),
     defaultValues: {
-      title: "",
-      amount: 0,
+      subCategoryId: "",
+      amount: 0, // Ensure amount is initialized as a number
       unit: "m3",
       scope: "directly",
-      smallDescription: "",
-      slug: "",
+      note: "",
+      source: "manual",
+      isDeleted: false,
     },
+    mode: "onBlur",
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: activityDataSchemaType) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
-  }
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <Link
-          href="/admin/carbons"
-          className={buttonVariants({ variant: "outline", size: "icon" })}
-        >
-          <ArrowLeft className="size-4" />
-        </Link>
-        <h1 className="text-2xl font-bold">Create Carbon</h1>
-      </div>
+  async function onSubmit(values: FormValues) {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/user-input", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(values),
+      });
 
-      <Card>
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(
+          err?.error ? JSON.stringify(err.error) : "Submit failed"
+        );
+      }
+
+      toast("success", {
+        description: "All inputs have been saved successfully",
+      });
+
+      form.reset();
+    } catch (e: any) {
+      toast("error", {
+        description: e.message ?? "An error occurred",
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="py-16">
+      <Card className="mx-auto max-w-lg p-4 shadow-md sm:p-16">
         <CardHeader>
-          <CardTitle>Basic information</CardTitle>
-          <CardDescription>
-            Basic information about your carbon footprint
+          <CardTitle className="font-bold text-2xl">
+            Record your Carbone to track
+          </CardTitle>
+          <CardDescription className="text-muted-foreground">
+            Enter all field to record corectly your used carbon
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form className="space-y-6" onSubmit={form.handleSubmit(onSubmit)}>
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Title</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Title" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <div className="flex gap-4 items-end ">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="grid gap-4 w-full"
+            >
+                {/* SubCategory Selection */}
                 <FormField
                   control={form.control}
-                  name="slug"
+                  name="subCategoryId"
                   render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Slug</FormLabel>
+                    <FormItem>
+                      <FormLabel>sub category</FormLabel>
                       <FormControl>
-                        <Input placeholder="Slug" {...field} />
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                          disabled={loadingSubs || loading}
+                        >
+                          <SelectTrigger className="w-full">
+                            <SelectValue
+                              placeholder={
+                                loadingSubs ? "loading..." : "please chose ..."
+                              }
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {subCategories.map((s) => (
+                              <SelectItem key={s.id} value={s.id}>
+                                {s.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                <Button
-                  type="button"
-                  className="w-fit"
-                  onClick={() => {
-                    const titleValue = form.getValues("title");
-                    const slug = slugify(titleValue);
-                    form.setValue("slug", slug, { shouldValidate: true });
-                  }}
-                >
-                  Generate slug <SparkleIcon className="ml-1" size={16} />
-                </Button>
-              </div>
-              <FormField
-                control={form.control}
-                name="smallDescription"
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Small Description</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Small Description"
-                        className="min-h-[120px]"
-                        {...field}
-                      />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <div className="grid grid-cols-2 gap-3">
+                {/* amount */}
                 <FormField
                   control={form.control}
                   name="amount"
                   render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Amount</FormLabel>
+                    <FormItem>
+                      <FormLabel>amount</FormLabel>
                       <FormControl>
-                        <Input placeholder="Amount" {...field} />
+                        <Input
+                          type="number"
+                          step="any"
+                          inputMode="decimal"
+                          placeholder="exam: 12.5"
+                          value={field.value === undefined ? "" : field.value}
+                          onChange={(e) => {
+                            const v = e.target.value;
+                            field.onChange(v === "" ? undefined : Number(v));
+                          }}
+                          disabled={loading}
+                        />
                       </FormControl>
+                      <FormMessage />
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="unit"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Unit</FormLabel>
+              {/* Unit */}
+              <FormField
+                control={form.control}
+                name="unit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>unit</FormLabel>
+                    <FormControl>
                       <Select
+                        value={field.value}
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        disabled={loading}
                       >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select Unit" />
-                          </SelectTrigger>
-                        </FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="select unit" />
+                        </SelectTrigger>
                         <SelectContent>
-                          {unitEnum.map((unit) => (
-                            <SelectItem key={unit} value={unit}>
-                              {unit}
+                          {["m3", "liter", "gallon", "kg", "ton"].map((u) => (
+                            <SelectItem key={u} value={u}>
+                              {u}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="scope"
-                  render={({ field }) => (
-                    <FormItem className="w-full">
-                      <FormLabel>Scope</FormLabel>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select Unit" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {scopeEnum.map((scope) => (
-                            <SelectItem key={scope} value={scope}>
-                              {scope}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </FormItem>
-                  )}
-                />
-              </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <Button>
-                Create Carbon <PlusIcon className="ml-1" size={16}/>
+              {/* Scope */}
+              <FormField
+                control={form.control}
+                name="scope"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Scope</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={field.onChange}
+                        disabled={loading}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="select domain" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["directly", "indirectly", "inChain"].map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Notes */}
+              <FormField
+                control={form.control}
+                name="note"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>comment</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Note is Optional..."
+                        {...field}
+                        disabled={loading}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* save button */}
+              <Button type="submit" disabled={loading}>
+                {loading ? "Saving..." : "Save"}
               </Button>
             </form>
           </Form>
         </CardContent>
       </Card>
-    </>
+    </div>
   );
 }
