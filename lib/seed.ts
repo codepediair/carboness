@@ -11,39 +11,28 @@ async function seed() {
   const categoriesData = [
     {
       id: randomUUID(),
-      name: "Category 1: Fuel and Refrigerants",
-      description: "Includes stationary fuel, mobile fuel, and refrigerants",
+      name: "Category 1: Direct Emissions",
+      description: "Includes stationary combustion, process emissions, and direct sources",
     },
     {
       id: randomUUID(),
-      name: "Category 2: Purchased Electricity",
-      description: "Electricity consumption and related greenhouse gas emissions",
+      name: "Category 2: Imported Energy Emissions",
+      description: "Electricity, heat, and steam purchased from external sources",
     },
     {
       id: randomUUID(),
-      name: "Category 3: Transportation, Services, and Travel",
-      description: "Emissions from transportation of goods, services, and business travel",
+      name: "Category 3: Transportation Emissions",
+      description: "Emissions from road, sea, air, and rail transport",
     },
     {
       id: randomUUID(),
-      name: "Category 4: Raw Materials, Machinery, Waste, and Purchased Services",
-      description: "Emissions from raw materials, machinery, waste, and purchased services",
-    },
-    {
-      id: randomUUID(),
-      name: "Category 5: End-of-Life of Sold Products",
-      description: "Emissions from the end-of-life stage of sold products",
-    },
-    {
-      id: randomUUID(),
-      name: "Category 6: Electricity Transmission and Distribution Losses",
-      description: "Emissions from electricity grid losses",
+      name: "Category 4: Product Use and Purchased Goods",
+      description: "Raw materials, semi-finished goods, services, and waste",
     },
   ].map(c => ({
     ...c,
     slug: slugify(c.name, { lower: true, strict: true }),
   }));
-
   await db.insert(category).values(categoriesData);
   console.log("✅ Categories inserted");
 
@@ -53,29 +42,23 @@ async function seed() {
   // --- 2. SubCategories ---
   const subCategoriesData = [
     // Category 1
-    { categoryId: getCategoryId("Category 1"), name: "Stationary Fuel", description: "Natural gas, LPG, propane" },
-    { categoryId: getCategoryId("Category 1"), name: "Mobile Fuel", description: "On-road and off-road diesel" },
-    { categoryId: getCategoryId("Category 1"), name: "Refrigerants", description: "Air conditioners, chillers, refrigerators, water coolers" },
+    { categoryId: getCategoryId("Category 1"), name: "Natural Gas Boiler", description: "Stationary combustion system" },
+    { categoryId: getCategoryId("Category 1"), name: "Coal Boiler", description: "Stationary combustion system" },
+    { categoryId: getCategoryId("Category 1"), name: "Diesel Generator", description: "Mobile combustion unit" },
 
     // Category 2
-    { categoryId: getCategoryId("Category 2"), name: "Electricity Consumption", description: "Calculate CO₂, CH₄, N₂O emissions based on kWh" },
+    { categoryId: getCategoryId("Category 2"), name: "Grid Electricity", description: "Electricity purchased from national grid" },
+    { categoryId: getCategoryId("Category 2"), name: "Certified Renewable Electricity", description: "Green energy with certification" },
 
     // Category 3
-    { categoryId: getCategoryId("Category 3"), name: "Transport of Raw Materials and Products", description: "Road, sea transport" },
-    { categoryId: getCategoryId("Category 3"), name: "Services", description: "Maintenance, catering, waste transport" },
-    { categoryId: getCategoryId("Category 3"), name: "Business Travel", description: "Road and air travel" },
+    { categoryId: getCategoryId("Category 3"), name: "Truck Transport", description: "Road freight transport" },
+    { categoryId: getCategoryId("Category 3"), name: "Cargo Ships", description: "Sea freight transport" },
+    { categoryId: getCategoryId("Category 3"), name: "Cargo Aircraft", description: "Air freight transport" },
 
     // Category 4
-    { categoryId: getCategoryId("Category 4"), name: "Raw Materials", description: "Weight × EF" },
-    { categoryId: getCategoryId("Category 4"), name: "Machinery", description: "Weight × EF" },
-    { categoryId: getCategoryId("Category 4"), name: "Waste", description: "Weight × EF" },
-    { categoryId: getCategoryId("Category 4"), name: "Purchased Services", description: "Cost × EF" },
-
-    // Category 5
-    { categoryId: getCategoryId("Category 5"), name: "Product End-of-Life", description: "Product weight × EF" },
-
-    // Category 6
-    { categoryId: getCategoryId("Category 6"), name: "Electricity Grid Losses", description: "Category 2 emissions × grid loss percentage" },
+    { categoryId: getCategoryId("Category 4"), name: "Raw Material Consumption", description: "Material-based emissions" },
+    { categoryId: getCategoryId("Category 4"), name: "Purchased Services", description: "Consulting, cleaning, logistics" },
+    { categoryId: getCategoryId("Category 4"), name: "Waste Disposal", description: "Emissions from waste treatment" },
   ].map(sc => ({
     id: randomUUID(),
     ...sc,
@@ -91,51 +74,83 @@ async function seed() {
   // --- 3. Emission Factors ---
   const emissionFactorsData = [
     {
-      subCategoryName: "Stationary Fuel",
+      subCategoryName: "Natural Gas Boiler",
       gasType: "CO2",
-      value: "2.75",
-      unit: "kgCO2e/liter",
-      source: "IPCC 2006 Guidelines",
+      value: "2.02",
+      unit: "kgCO2e/m³",
+      source: "IPCC 2006",
       year: 2023,
     },
     {
-      subCategoryName: "Mobile Fuel",
+      subCategoryName: "Coal Boiler",
       gasType: "CO2",
-      value: "2.68",
-      unit: "kgCO2e/liter",
-      source: "DEFRA 2023",
-      year: 2023,
-    },
-    {
-      subCategoryName: "Refrigerants",
-      gasType: "HFC-134a",
-      value: "1430",
+      value: "2.93",
       unit: "kgCO2e/kg",
-      source: "IPCC AR5",
+      source: "IPCC 2006",
       year: 2023,
     },
     {
-      subCategoryName: "Electricity Consumption",
+      subCategoryName: "Grid Electricity",
       gasType: "CO2",
-      value: "0.4183",
+      value: "0.418",
       unit: "kgCO2e/kWh",
-      source: "National Grid Factors",
+      source: "National Grid",
       year: 2023,
     },
     {
-      subCategoryName: "Electricity Consumption",
+      subCategoryName: "Certified Renewable Electricity",
+      gasType: "CO2",
+      value: "0.05",
+      unit: "kgCO2e/kWh",
+      source: "Green Energy Registry",
+      year: 2023,
+    },
+    {
+      subCategoryName: "Truck Transport",
+      gasType: "CO2",
+      value: "0.12",
+      unit: "kgCO2e/ton-km",
+      source: "DEFRA",
+      year: 2023,
+    },
+    {
+      subCategoryName: "Cargo Ships",
+      gasType: "CO2",
+      value: "0.015",
+      unit: "kgCO2e/ton-km",
+      source: "IMO",
+      year: 2023,
+    },
+    {
+      subCategoryName: "Cargo Aircraft",
+      gasType: "CO2",
+      value: "0.5",
+      unit: "kgCO2e/ton-km",
+      source: "ICAO",
+      year: 2023,
+    },
+    {
+      subCategoryName: "Raw Material Consumption",
+      gasType: "CO2",
+      value: "1.8",
+      unit: "kgCO2e/kg",
+      source: "Ecoinvent",
+      year: 2023,
+    },
+    {
+      subCategoryName: "Purchased Services",
+      gasType: "CO2",
+      value: "0.25",
+      unit: "kgCO2e/USD",
+      source: "Scope 3 Estimation",
+      year: 2023,
+    },
+    {
+      subCategoryName: "Waste Disposal",
       gasType: "CH4",
-      value: "0.0001",
-      unit: "kgCO2e/kWh",
-      source: "National Grid Factors",
-      year: 2023,
-    },
-    {
-      subCategoryName: "Electricity Consumption",
-      gasType: "N2O",
-      value: "0.0015",
-      unit: "kgCO2e/kWh",
-      source: "National Grid Factors",
+      value: "0.8",
+      unit: "kgCO2e/kg",
+      source: "IPCC Waste Guidelines",
       year: 2023,
     },
   ].map(ef => ({
