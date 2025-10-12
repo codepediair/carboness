@@ -3,7 +3,7 @@ import { user } from "@/db/schema/auth-schema"
 import { relations } from "drizzle-orm"
 
 // ---- Enums ----
-export const scopeEnum = pgEnum("scope", ["scope1", "scope2", "scope3"]);
+export const scopeEnum = pgEnum("scope_type", ["scope1", "scope2", "scope3"]);
 export const unitEnum = pgEnum("unit", ["m3", "liter", "gallon", "kg", "ton", "kWh", "MWh", "km", "ton_km", "person_km", "hour", "item"]);
 export const fuelTypeEnum = pgEnum("fuel_type", ["natural_gas", "diesel", "gasoline", "coal", "biomass", "lpg", "electricity", "other"]);
 export const transportTypeEnum = pgEnum("transport_type", ["road", "rail", "marine", "air", "pipeline", "combined"]);
