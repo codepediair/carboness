@@ -13,7 +13,9 @@ import { user } from "@/db/schema/auth-schema";
 
 // ---- Enums ----
 export const unitEnum = pgEnum("unit", [
-  "kg", "ton", "m3", "liter", "kWh", "MWh", "km", "ton-km"
+  "kg", "ton", "m3", "liter", "gallon",
+  "kWh", "MWh", "km", "ton_km", "person_km",
+  "hour", "item"
 ]);
 
 export const scopeEnum = pgEnum("scope", [
@@ -67,20 +69,20 @@ export const emissionFactor = pgTable("emission_factor", {
 // ---- User Input ----
 export const userInput = pgTable("user_input", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
+  userId: text("user_id")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   subCategoryId: uuid("sub_category_id")
     .notNull()
     .references(() => subCategory.id, { onDelete: "cascade" }),
-  amount: numeric("amount", { precision: 14, scale: 4 }).notNull(),
+  amount: numeric("amount", { precision: 14, scale: 4 }).$type<number>().notNull(),
   unit: unitEnum().notNull(),
   scope: scopeEnum().notNull(),
   note: text("note"),
-  recycledRatio: numeric("recycled_ratio"), // 0–1
+  recycledRatio: numeric("recycled_ratio", { precision: 5, scale: 2 }).$type<number | null>(),
   isCertifiedGreen: boolean("is_certified_green").default(false),
   supplierClaim: text("supplier_claim"),
-  calculatedCO2e: numeric("calculated_co2e", { precision: 14, scale: 6 }),
+  calculatedCO2e: numeric("calculated_co2e", { precision: 14, scale: 6 }).$type<number | null>(),
   source: text("source").default("manual"),
   isDeleted: boolean("is_deleted").default(false).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

@@ -1,8 +1,8 @@
 "use client";
 
-export const dynamic = "force-dynamic";
 import * as React from "react";
 import { useForm } from "react-hook-form";
+import type { Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { userInputSchema } from "@/lib/zodSchema";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -25,51 +26,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { useSearchParams } from "next/navigation";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 type FormValues = z.infer<typeof userInputSchema>;
-type SubCategoryOption = { id: string; name: string };
 
-export default function CarbonInputForm() {
-  const searchParams = useSearchParams();
-  const categoryId = searchParams.get("categoryId");
+type SubCategoryOption = {
+  id: string;
+  name: string;
+};
+
+export default function UserInputForm() {
   const [loading, setLoading] = React.useState(false);
   const [subCategories, setSubCategories] = React.useState<SubCategoryOption[]>(
     []
   );
   const [loadingSubs, setLoadingSubs] = React.useState(true);
 
-  // Fetch subcategories
   React.useEffect(() => {
     let mounted = true;
-    if (!categoryId) {
-      toast("error", {
-        description: "category id not valid or not found",
-      });
-      setLoadingSubs(false);
-      // return;
-    }
     (async () => {
       try {
-        const res = await fetch(
-          categoryId
-            ? `/api/sub-category?categoryId=${categoryId}`
-            : "/api/sub-category"
-        );
-        // const res = await fetch(url);
+        const res = await fetch("/api/sub-category");
         const data: SubCategoryOption[] = await res.json();
         if (mounted) setSubCategories(data);
       } catch {
-        toast("error", {
-          description: "Failed to load subcategories",
-        });
+        toast("error", { description: "Failed to load subcategories" });
       } finally {
         if (mounted) setLoadingSubs(false);
       }
@@ -77,23 +57,26 @@ export default function CarbonInputForm() {
     return () => {
       mounted = false;
     };
-  }, [categoryId]);
+  }, []);
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(userInputSchema),
+    resolver: zodResolver(userInputSchema) as unknown as Resolver<FormValues>,
     defaultValues: {
       subCategoryId: "",
-      amount: 0, // Ensure amount is initialized as a number
-      unit: "m3",
-      scope: "directly",
+      amount: 0,
+      unit: "kg",
+      scope: "scope1",
       note: "",
-      source: "manual",
+      recycledRatio: null,
+      isCertifiedGreen: false,
+      supplierClaim: "",
+      dataSource: "manual",
       isDeleted: false,
     },
     mode: "onBlur",
   });
 
-  async function onSubmit(values: FormValues) {
+  const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
       const res = await fetch("/api/user-input", {
@@ -109,183 +92,247 @@ export default function CarbonInputForm() {
         );
       }
 
-      toast("success", {
-        description: "All inputs have been saved successfully",
-      });
-
+      toast("success", { description: "Input saved successfully" });
       form.reset();
     } catch (e: any) {
-      toast("error", {
-        description: e.message ?? "An error occurred",
-      });
+      toast("error", { description: e.message ?? "An error occurred" });
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-      <div className="py-16">
-        <Card className="mx-auto max-w-lg p-4 shadow-md sm:p-16">
-          <CardHeader>
-            <CardTitle className="font-bold text-2xl">
-              Record your Carbone to track
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Enter all field to record corectly your used carbon
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="grid gap-4 w-full"
-              >
-                {/* SubCategory Selection */}
-                <FormField
-                  control={form.control}
-                  name="subCategoryId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>sub category</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          disabled={loadingSubs || loading}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue
-                              placeholder={
-                                loadingSubs ? "loading..." : "please chose ..."
-                              }
-                            />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {subCategories.map((s) => (
-                              <SelectItem key={s.id} value={s.id}>
-                                {s.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+    <Card className="w-full max-w-sm">
+      <CardHeader>
+        <CardTitle>Add your carbon</CardTitle>
+        <CardDescription>
+          you can record all carbon footprint to this page
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
+          <div className="flex flex-col gap-6">
+          {/* SubCategoryId */}
+          <FormField
+            control={form.control}
+            name="subCategoryId"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sub Category</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={loadingSubs || loading}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={
+                          loadingSubs ? "Loading..." : "Choose a sub category"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subCategories.map((s) => (
+                        <SelectItem key={s.id} value={s.id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-                {/* amount */}
-                <FormField
-                  control={form.control}
-                  name="amount"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>amount</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="any"
-                          inputMode="decimal"
-                          placeholder="exam: 12.5"
-                          value={field.value === undefined ? "" : field.value}
-                          onChange={(e) => {
-                            const v = e.target.value;
-                            field.onChange(v === "" ? undefined : Number(v));
-                          }}
-                          disabled={loading}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                {/* Unit */}
-                <FormField
-                  control={form.control}
-                  name="unit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>unit</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          disabled={loading}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="select unit" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {["m3", "liter", "gallon", "kg", "ton"].map((u) => (
-                              <SelectItem key={u} value={u}>
-                                {u}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {/* Amount */}
+          <FormField
+            control={form.control}
+            name="amount"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Amount</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="any"
+                    {...field}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-                {/* Scope */}
-                <FormField
-                  control={form.control}
-                  name="scope"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Scope</FormLabel>
-                      <FormControl>
-                        <Select
-                          value={field.value}
-                          onValueChange={field.onChange}
-                          disabled={loading}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="select domain" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {["directly", "indirectly", "inChain"].map((s) => (
-                              <SelectItem key={s} value={s}>
-                                {s}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          {/* Unit */}
+          <div className="flex flex-row gap-4">
 
-                {/* Notes */}
-                <FormField
-                  control={form.control}
-                  name="note"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>comment</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Note is Optional..."
-                          {...field}
-                          disabled={loading}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+          <FormField
+            control={form.control}
+            name="unit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unit</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={loading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[
+                        "kg",
+                        "ton",
+                        "m3",
+                        "liter",
+                        "kWh",
+                        "MWh",
+                        "km",
+                        "ton-km",
+                      ].map((u) => (
+                        <SelectItem key={u} value={u}>
+                          {u}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+            />
 
-                {/* save button */}
-                <Button type="submit" disabled={loading}>
-                  {loading ? "Saving..." : "Save"}
-                </Button>
-              </form>
-            </Form>
-          </CardContent>
-        </Card>
-      </div>
+          {/* Scope */}
+          <FormField
+            control={form.control}
+            name="scope"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Scope</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={loading}
+                    >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select scope" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {["scope1", "scope2", "scope3"].map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+            />
+            </div>
+
+          {/* Recycled Ratio */}
+          <FormField
+            control={form.control}
+            name="recycledRatio"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Recycled Ratio (0–1)</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    max="1"
+                    value={field.value ?? ""}
+                    onChange={(e) =>
+                      field.onChange(
+                        e.target.value === "" ? null : Number(e.target.value)
+                      )
+                    }
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Certified Green */}
+          <FormField
+            control={form.control}
+            name="isCertifiedGreen"
+            render={({ field }) => (
+              <FormItem className="flex flex-col items-start">
+                <FormLabel>Certified Green?</FormLabel>
+                <FormControl>
+                  <input
+                    type="checkbox"
+                    checked={field.value ?? false}
+                    onChange={(e) => field.onChange(e.target.checked)}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Supplier Claim */}
+          <FormField
+            control={form.control}
+            name="supplierClaim"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Supplier Claim</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Optional supplier claim..."
+                    {...field}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Note */}
+          <FormField
+            control={form.control}
+            name="note"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Note</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Optional note..."
+                    {...field}
+                    disabled={loading}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          {/* Submit */}
+          <Button type="submit" disabled={loading}>
+            {loading ? "Saving..." : "Save"}
+          </Button>
+          </div>
+        </form>
+      </Form>
+      </CardContent>
+    </Card>
   );
 }

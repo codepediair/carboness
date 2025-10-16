@@ -22,6 +22,9 @@ async function seed() {
     { name: "Category 4: Product Use and Purchased Goods", description: "Raw materials, services, waste" },
   ].map(withMeta);
 
+  await db.insert(category).values(categoriesData);
+  console.log("✅ Categories inserted");
+
   const getCategoryId = (prefix: string) =>
     categoriesData.find(c => c.name.startsWith(prefix))?.id ?? "";
 
@@ -38,6 +41,9 @@ async function seed() {
     { categoryId: getCategoryId("Category 4"), name: "Purchased Services", description: "Consulting, cleaning, logistics" },
     { categoryId: getCategoryId("Category 4"), name: "Waste Disposal", description: "Waste treatment emissions" },
   ].map(withMeta);
+
+  await db.insert(subCategory).values(subCategoriesData);
+  console.log("✅ SubCategories inserted");
 
   const getSubCategoryId = (name: string) =>
     subCategoriesData.find(sc => sc.name === name)?.id ?? "";
@@ -59,13 +65,9 @@ async function seed() {
     ...ef,
   }));
 
-  await db.transaction(async (tx) => {
-    await tx.insert(category).values(categoriesData);
-    await tx.insert(subCategory).values(subCategoriesData);
-    await tx.insert(emissionFactor).values(emissionFactorsData);
+  await db.insert(emissionFactor).values(emissionFactorsData);
+  console.log("✅ Emission Factors inserted");
 
-  });
-  
   console.log("🌱 Full seed completed successfully!");
   process.exit(0);
 }
