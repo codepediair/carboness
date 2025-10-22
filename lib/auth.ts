@@ -12,23 +12,7 @@ export const auth = betterAuth({
     provider: "pg", // or "mysql", "sqlite"
     schema: { user, session, account, verification }
   }),
-  socialProviders: {
-    github: {
-      clientId: env.AUTH_GITHUB_CLIENT_ID,
-      clientSecret: env.AUTH_GITHUB_SECRET
-    }
+  emailAndPassword: {
+    enabled: true,
   },
-
-  plugins: [
-    emailOTP({
-      async sendVerificationOTP({ email, otp }) {
-        await resend.emails.send({
-          from: 'carboness <onboarding@resend.dev>',
-          to: [email],
-          subject: 'carboness - verify your email',
-          html: `<p>Your OTP is <strong>${otp}</strong></p>`,
-        })
-      }
-    }),
-  ]
 });
