@@ -1,5 +1,5 @@
 import { auth } from "@/lib/auth";
-import SignIn from "./_components/sign-in";
+import SignUp from "./_components/sign-up";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -11,6 +11,6 @@ export default async function LoginPage() {
     return redirect("/");
   }
   return (
-    <SignIn />
+    <SignUp />
   )
 }
