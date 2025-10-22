@@ -8,7 +8,7 @@ export default async function LoginPage() {
     headers: await headers(),
   })
   if (session) {
-    return redirect("/");
+    return redirect("/admin");
   }
   return (
     <SignIn />
