@@ -1,13 +1,17 @@
-import CalculationsCard from "./_components/calculation-result";
-import CarbonInputForm from "./_components/carbon-form-client";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-export const dynamic = "force-dynamic";
-export const fetchCache = "force-no-store";
-
-export default function CarbonCreatePage() {
+export default async function CarbonCreatePage() {
+  const session = await auth.api.getSession ({
+    headers: await headers(),
+  })
+  if (session === null) {
+    return redirect("/login");
+  }
   return(
   <div className="flex flex-row">
-    <CarbonInputForm />;
+    Carbons Create page
   </div>
 
   ) 

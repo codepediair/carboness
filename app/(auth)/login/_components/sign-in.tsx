@@ -16,6 +16,8 @@ import { useState } from "react";
 import { Loader2, Key } from "lucide-react";
 import { signIn } from "@/lib/auth-client";
 import Link from "next/link";
+import { toast } from "sonner";
+import { redirect } from "next/navigation";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -91,7 +93,11 @@ export default function SignIn() {
                   },
                   onResponse: (ctx) => {
                     setLoading(false);
+                    redirect("/admin")
                   },
+                  onError: (ctx) => {
+                    toast.error(ctx.error.message);
+                  }
                 }
               );
             }}
@@ -107,7 +113,7 @@ export default function SignIn() {
       <CardFooter>
         <div className="flex justify-center w-full border-t py-4">
           <p className="text-center text-xs text-neutral-500">
-            you dont have account ?{" "}
+            you dont have an account ?{" "}
             <Link href="/signup" className="underline" target="_blank">
               <span className="dark:text-white/70 cursor-pointer">
                 Create new one
