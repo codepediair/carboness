@@ -38,7 +38,7 @@ export default function Hero() {
 
               <div className="mt-8">
                 <Button size="lg" asChild>
-                  <Link href="#">
+                  <Link href="/admin">
                     <Rocket className="relative size-4" />
                     <span className="text-nowrap">Start Monitoring</span>
                   </Link>
