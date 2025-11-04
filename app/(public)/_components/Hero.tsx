@@ -1,90 +1,67 @@
-import { buttonVariants } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { ArrowRight, Rocket } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
 export default function Hero() {
   return (
-    <main>
-      <div
-        aria-hidden
-        className="z-2 absolute inset-0 isolate hidden opacity-50 contain-strict lg:block"
-      >
-        <div className="w-140 h-320 -translate-y-87.5 absolute left-0 top-0 -rotate-45 rounded-full bg-[radial-gradient(68.54%_68.72%_at_55.02%_31.46%,hsla(0,0%,85%,.08)_0,hsla(0,0%,55%,.02)_50%,hsla(0,0%,45%,0)_80%)]" />
-        <div className="h-320 absolute left-0 top-0 w-60 -rotate-45 rounded-full bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.06)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)] [translate:5%_-50%]" />
-        <div className="h-320 -translate-y-87.5 absolute left-0 top-0 w-60 -rotate-45 bg-[radial-gradient(50%_50%_at_50%_50%,hsla(0,0%,85%,.04)_0,hsla(0,0%,45%,.02)_80%,transparent_100%)]" />
-      </div>
-
-      <section className="overflow-hidden bg-white dark:bg-transparent">
-        <div className="relative mx-auto max-w-5xl px-6 py-28 lg:py-24">
-          <div className="relative z-10 mx-auto max-w-2xl text-center">
-            <h1 className="text-balance text-4xl font-semibold md:text-5xl lg:text-6xl">
-              Modern Software for monitoring carbon
-            </h1>
-            <p className="mx-auto my-8 max-w-2xl text-xl">
-              The best way for organizations to track, analyze, and reduce their
-              carbon footprint—empowering you to make data-driven decisions for
-              a sustainable future.
-            </p>
-            <div className="flex items-center justify-center gap-2">
-              <Link href="#">
-                <span className={buttonVariants({ variant: "outline" })}>
-                  what is carbon monitoring
+    <main className="overflow-hidden">
+      <section>
+        <div className="relative pt-24">
+          <div className="mx-auto max-w-7xl px-6">
+            <div className="max-w-3xl text-center sm:mx-auto lg:mr-auto lg:mt-0 lg:w-4/5">
+              <Link
+                href="/"
+                className="rounded-(--radius) mx-auto flex w-fit items-center gap-2 border p-1 pr-3"
+              >
+                <span className="bg-muted rounded-[calc(var(--radius)-0.25rem)] px-2 py-1 text-xs">
+                  New
                 </span>
+                <span className="text-sm">Chat with AI and Ask Anything</span>
+                <span className="bg-(--color-border) block h-4 w-px"></span>
+
+                <ArrowRight className="size-4" />
               </Link>
-              <Link href="#">
-                <span className={buttonVariants()}>Get Started</span>
-              </Link>
-            </div>
-          </div>
-        </div>
 
-        <div className="mx-auto -mt-16 max-w-7xl">
-          <div className="perspective-distant -mr-16 pl-16 lg:-mr-56 lg:pl-56">
-            <div className="[transform:rotateX(20deg);]">
-              <div className="lg:h-176 relative skew-x-[.36rad]">
-                <div
-                  aria-hidden
-                  className="bg-linear-to-b from-background to-background z-1 absolute -inset-16 via-transparent sm:-inset-32"
-                />
-                <div
-                  aria-hidden
-                  className="bg-linear-to-r from-background to-background z-1 absolute -inset-16 bg-white/50 via-transparent sm:-inset-32 dark:bg-transparent"
-                />
+              <h1 className="mt-8 text-balance text-4xl font-semibold md:text-5xl xl:text-6xl xl:[line-height:1.125]">
+                Modern Software for Carbon Footprinting
+              </h1>
+              <p className="mx-auto mt-8 hidden max-w-2xl text-wrap text-lg sm:block">
+                carbon tracking and reporting tools to help you reduce your
+                carborn footprintin
+              </p>
+              <p className="mx-auto mt-6 max-w-2xl text-wrap sm:hidden">
+                Highly customizable components for building modern footprint
+                monitoring and all systems, with your personal spark.
+              </p>
 
-                <div
-                  aria-hidden
-                  className="absolute -inset-16 bg-[linear-gradient(to_right,var(--color-border)_1px,transparent_1px),linear-gradient(to_bottom,var(--color-border)_1px,transparent_1px)] bg-[size:24px_24px] [--color-border:var(--color-zinc-400)] sm:-inset-32 dark:[--color-border:color-mix(in_oklab,var(--color-white)_20%,transparent)]"
-                />
-                <div
-                  aria-hidden
-                  className="from-background z-11 absolute inset-0 bg-gradient-to-l"
-                />
-                <div
-                  aria-hidden
-                  className="z-2 absolute inset-0 size-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,transparent_40%,var(--color-background)_100%)]"
-                />
-                <div
-                  aria-hidden
-                  className="z-2 absolute inset-0 size-full items-center px-5 py-24 [background:radial-gradient(125%_125%_at_50%_10%,transparent_40%,var(--color-background)_100%)]"
-                />
-
-                <Image
-                  className="rounded-(--radius) z-1 relative border dark:hidden"
-                  src="/heroLight.jpeg"
-                  alt="Dashboard"
-                  width={2880}
-                  height={2074}
-                />
-                <Image
-                  className="rounded-(--radius) z-1 relative hidden border dark:block"
-                  src="/heroDark.jpeg"
-                  alt="Dashboard"
-                  width={2880}
-                  height={2074}
-                />
+              <div className="mt-8">
+                <Button size="lg" asChild>
+                  <Link href="#">
+                    <Rocket className="relative size-4" />
+                    <span className="text-nowrap">Start Monitoring</span>
+                  </Link>
+                </Button>
               </div>
             </div>
+          </div>
+
+          <div className="mask-b-from-55% relative mx-auto mt-16 max-w-6xl overflow-hidden px-4">
+            <Image
+              className="z-2 border-border/25 relative hidden rounded-2xl border dark:block"
+              src="https://images.pexels.com/photos/1487834/pexels-photo-1487834.jpeg?_gl=1*x3nvou*_ga*OTc1MTAxNjk1LjE3NTk4MzA1MTY.*_ga_8JE65Q40S6*czE3NjIyNjM2NjUkbzMkZzEkdDE3NjIyNjM4NzAkajU5JGwwJGgw"
+              alt="app screen"
+              width={2796}
+              height={2008}
+            />
+            <Image
+              className="z-2 border-border/25 relative rounded-2xl border dark:hidden"
+              src="https://images.pexels.com/photos/305821/pexels-photo-305821.jpeg?_gl=1*87sdrq*_ga*OTc1MTAxNjk1LjE3NTk4MzA1MTY.*_ga_8JE65Q40S6*czE3NjIyNjM2NjUkbzMkZzEkdDE3NjIyNjM2OTckajI4JGwwJGgw"
+              alt="app screen"
+              width={2796}
+              height={2008}
+            />
           </div>
         </div>
       </section>
