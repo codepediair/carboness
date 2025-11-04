@@ -1,47 +1,58 @@
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Zap } from "lucide-react";
+import { Activity, DraftingCompass, Mail, Zap } from "lucide-react";
+import Image from "next/image";
 
-const featursItem = [
-  {
-    title: "Fast",
-    description: "It supports an entire helping developers and innovate.",
-  },
-  {
-    title: "Powerful",
-    description: "It supports an entire helping developers and innovate.",
-  },
-  {
-    title: "FasSecurityt",
-    description: "It supports an entire helping developers and innovate.",
-  },
-  {
-    title: "Customization",
-    description: "It supports an entire helping developers and innovate.",
-  },
-  {
-    title: "Control",
-    description: "It supports an entire helping developers and innovate.",
-  },
-  {
-    title: "Built for AI",
-    description: "It supports an entire helping developers and innovate.",
-  },
-];
-
-export default function Features() {
+export default function FeaturesSection() {
   return (
-    <section className="py-12 md:py-20">
-      <div className="mx-auto max-w-5xl space-y-8 px-6 md:space-y-16">
-        <div className="relative mx-auto grid max-w-4xl divide-x divide-y *:p-12 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          {featursItem.map((item) => (
-            <Card key={item.title} className="space-y-3">
-              <CardHeader className="flex items-center gap-2">
-                <Zap className="size-4" />
-                <h3 className="text-sm font-medium">{item.title}</h3>
-              </CardHeader>
-              <CardContent className="text-sm">{item.description}</CardContent>
-            </Card>
-          ))}
+    <section className="py-16 md:py-32">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="grid items-center gap-12 md:grid-cols-2 md:gap-12 lg:grid-cols-5 lg:gap-24">
+          <div className="lg:col-span-2">
+            <div className="md:pr-6 lg:pr-0">
+              <h2 className="text-4xl font-semibold lg:text-5xl">
+                Build for Care My Planet Earth
+              </h2>
+              <p className="mt-6">
+                Orrupti aut temporibus assumenda atque ab, accusamus sit,
+                molestiae veniam laboriosam pariatur.
+              </p>
+            </div>
+            <ul className="mt-8 divide-y border-y *:flex *:items-center *:gap-3 *:py-3">
+              <li>
+                <Mail className="size-5" />
+                Message and web support
+              </li>
+              <li>
+                <Zap className="size-5" />
+                Fast response time
+              </li>
+              <li>
+                <Activity className="size-5" />
+                Menitoring and analytics
+              </li>
+              <li>
+                <DraftingCompass className="size-5" />
+                Architectural review
+              </li>
+            </ul>
+          </div>
+          <div className="border-border/50 relative rounded-3xl border p-3 lg:col-span-3">
+            <div className="bg-linear-to-b aspect-76/59 relative rounded-2xl from-zinc-300 to-transparent p-px dark:from-zinc-700">
+              <Image
+                src="https://images.pexels.com/photos/335393/pexels-photo-335393.jpeg?_gl=1*1fy1ho1*_ga*OTc1MTAxNjk1LjE3NTk4MzA1MTY.*_ga_8JE65Q40S6*czE3NjIyNjM2NjUkbzMkZzEkdDE3NjIyNjQ3NzgkajQ1JGwwJGgw"
+                className="hidden rounded-[15px] dark:block"
+                alt="planet Earth"
+                width={1207}
+                height={929}
+              />
+              <Image
+                src="https://images.pexels.com/photos/335393/pexels-photo-335393.jpeg?_gl=1*1fy1ho1*_ga*OTc1MTAxNjk1LjE3NTk4MzA1MTY.*_ga_8JE65Q40S6*czE3NjIyNjM2NjUkbzMkZzEkdDE3NjIyNjQ3NzgkajQ1JGwwJGgw"
+                className="rounded-[15px] shadow dark:hidden"
+                alt="planet Earth"
+                width={1207}
+                height={929}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
