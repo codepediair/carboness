@@ -10,6 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
+import { relations } from "drizzle-orm";
 // enums
 export const unitEnum = pgEnum("unit", ["kWh", "Liter", "Ton-kw", "tCO2e"]);
 
@@ -77,3 +78,47 @@ export const emissionOutputs = pgTable("emission_outputs", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// ---- Relations (for Drizzle query builder `with` support) ----
+export const categoriesRelations = relations(categories, ({ many }) => ({
+  subCategories: many(subCategories),
+}));
+
+export const subCategoriesRelations = relations(subCategories, ({ one, many }) => ({
+  category: one(categories, {
+    fields: [subCategories.categoryId],
+    references: [categories.id],
+  }),
+  emissionSources: many(emissionSources),
+}));
+
+export const emissionSourcesRelations = relations(emissionSources, ({ one, many }) => ({
+  subCategory: one(subCategories, {
+    fields: [emissionSources.subCategoryId],
+    references: [subCategories.id],
+  }),
+  activityTypes: many(activityTypes),
+}));
+
+export const activityTypesRelations = relations(activityTypes, ({ one, many }) => ({
+  emissionSource: one(emissionSources, {
+    fields: [activityTypes.sourceId],
+    references: [emissionSources.id],
+  }),
+  emissionInputs: many(emissionInputs),
+}));
+
+export const emissionInputsRelations = relations(emissionInputs, ({ one, many }) => ({
+  activityType: one(activityTypes, {
+    fields: [emissionInputs.activityId],
+    references: [activityTypes.id],
+  }),
+  emissionOutputs: many(emissionOutputs),
+}));
+
+export const emissionOutputsRelations = relations(emissionOutputs, ({ one }) => ({
+  input: one(emissionInputs, {
+    fields: [emissionOutputs.inputId],
+    references: [emissionInputs.id],
+  }),
+}));
