@@ -38,7 +38,7 @@ export default function FeaturesSection() {
           <div className="border-border/50 relative rounded-3xl border p-3 lg:col-span-3">
             <div className="bg-linear-to-b aspect-76/59 relative rounded-2xl from-zinc-300 to-transparent p-px dark:from-zinc-700">
               <Image
-                src="https://images.pexels.com/photos/16047143/pexels-photo-16047143.jpeg?_gl=1*11m2k45*_ga*OTc1MTAxNjk1LjE3NTk4MzA1MTY.*_ga_8JE65Q40S6*czE3NjIyNjM2NjUkbzMkZzEkdDE3NjIyNjY5OTEkajU5JGwwJGgw"
+                src="https://images.pexels.com/photos/335393/pexels-photo-335393.jpeg?_gl=1*oa1yad*_ga*OTc1MTAxNjk1LjE3NTk4MzA1MTY.*_ga_8JE65Q40S6*czE3NjIyNjM2NjUkbzMkZzEkdDE3NjIyNjc2MzgkajUwJGwwJGgw"
                 className="hidden rounded-[15px] dark:block"
                 alt="planet Earth"
                 width={1207}

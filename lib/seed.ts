@@ -1,78 +1,192 @@
-// import "dotenv/config";
-// import { db } from "@/db/drizzle";
-// import { category, subCategory, emissionFactor } from "@/db/schema/schema";
-// import { randomUUID } from "crypto";
-// import slugify from "slugify";
+import "dotenv/config";
+import { db } from "@/db/drizzle";
+import {
+  categories,
+  subCategories,
+  emissionSources,
+  emissionSourceTags,
+} from "@/db/schema/schema";
+import { randomUUID } from "crypto";
+// Category definitions (based on ISO 14064-1)
+const categoryData = [
+  {
+    title: "Category 1 – Direct Activities",
+    description:
+      "Emissions from sources directly owned or controlled by the company, such as on-site fuel combustion, company vehicles, and process gases.",
+    subCategories: [
+      {
+        title: "Stationary Combustion",
+        description: "Fuel combustion from boilers, furnaces, and generators.",
+        sources: [
+          { title: "Diesel Generator" },
+          { title: "Natural Gas Boiler" },
+          { title: "Fuel Oil Heater" },
+        ],
+        tags: ["energy"],
+      },
+      {
+        title: "Mobile Combustion",
+        description: "Company-owned vehicles and mobile machinery.",
+        sources: [
+          { title: "Company Cars" },
+          { title: "Forklifts and Loaders" },
+        ],
+        tags: ["transport"],
+      },
+      {
+        title: "Process Emissions",
+        description: "Industrial process gases or chemical reactions.",
+        sources: [{ title: "CO2 from Cement Production" }],
+        tags: ["process"],
+      },
+    ],
+  },
+  {
+    title: "Category 2 – Energy Indirect Activities",
+    description:
+      "Emissions from the generation of purchased electricity, heat, or steam consumed by the company.",
+    subCategories: [
+      {
+        title: "Purchased Electricity",
+        description: "Grid electricity consumption in buildings or facilities.",
+        sources: [{ title: "Grid Power Consumption" }],
+        tags: ["energy"],
+      },
+      {
+        title: "Purchased Heat or Steam",
+        description: "District heating or steam from external suppliers.",
+        sources: [{ title: "District Heating" }],
+        tags: ["energy"],
+      },
+    ],
+  },
+  {
+    title: "Category 3 – Logistics Indirect Activities",
+    description:
+      "Emissions from transport and travel not directly controlled by the company.",
+    subCategories: [
+      {
+        title: "Upstream Logistics",
+        description: "Transport of raw materials or purchased goods.",
+        sources: [{ title: "Inbound Freight" }],
+        tags: ["transport"],
+      },
+      {
+        title: "Business Travel",
+        description: "Flights, trains, or car rentals for business trips.",
+        sources: [{ title: "Air Travel" }, { title: "Train Travel" }],
+        tags: ["transport"],
+      },
+      {
+        title: "Employee Commuting",
+        description: "Daily travel between home and workplace.",
+        sources: [{ title: "Private Car Commuting" }],
+        tags: ["transport"],
+      },
+    ],
+  },
+  {
+    title: "Category 4 – Upstream Indirect Activities",
+    description:
+      "Emissions from supply chain processes before materials or services reach the company.",
+    subCategories: [
+      {
+        title: "Purchased Materials",
+        description: "Production of raw or intermediate materials.",
+        sources: [{ title: "Steel Production" }, { title: "Plastic Resin" }],
+        tags: ["supply-chain"],
+      },
+      {
+        title: "Purchased Services",
+        description:
+          "Services provided by third parties (e.g., IT, consulting).",
+        sources: [{ title: "IT Hosting Services" }],
+        tags: ["service"],
+      },
+    ],
+  },
+  {
+    title: "Category 5 – Downstream Indirect Activities",
+    description:
+      "Emissions occurring after products leave company control, such as during use or disposal.",
+    subCategories: [
+      {
+        title: "Product Use Phase",
+        description: "Energy used during the lifetime of products sold.",
+        sources: [{ title: "Electric Appliance Usage" }],
+        tags: ["product"],
+      },
+      {
+        title: "End-of-Life",
+        description: "Recycling or disposal of sold products or packaging.",
+        sources: [{ title: "Product Disposal" }],
+        tags: ["waste"],
+      },
+    ],
+  },
+  {
+    title: "Category 6 – Other Indirect Activities",
+    description:
+      "Other emissions linked to the company’s operations, such as investments or leased assets.",
+    subCategories: [
+      {
+        title: "Investments",
+        description: "Financed emissions through investments or holdings.",
+        sources: [{ title: "Equity Investments" }],
+        tags: ["finance"],
+      },
+      {
+        title: "Leased Assets",
+        description: "Emissions from leased buildings or vehicles.",
+        sources: [{ title: "Leased Office Space" }],
+        tags: ["lease"],
+      },
+    ],
+  },
+];
 
-// function withMeta<T extends { name: string }>(item: T) {
-//   return {
-//     id: randomUUID(),
-//     slug: slugify(item.name, { lower: true, strict: true }),
-//     ...item,
-//   };
-// }
+export async function seedEmissionData() {
+  console.log("🌱 Starting emission categories seeding...");
 
-// async function seed() {
-//   console.log("🌱 Starting full seed...");
+  for (const cat of categoryData) {
+    const catId = randomUUID();
 
-//   const categoriesData = [
-//     { name: "Category 1: Direct Emissions", description: "Stationary combustion, process emissions, direct sources" },
-//     { name: "Category 2: Imported Energy Emissions", description: "Electricity, heat, steam purchased externally" },
-//     { name: "Category 3: Transportation Emissions", description: "Road, sea, air, rail transport" },
-//     { name: "Category 4: Product Use and Purchased Goods", description: "Raw materials, services, waste" },
-//   ].map(withMeta);
+    await db.insert(categories).values({
+      id: catId,
+      title: cat.title,
+      description: cat.description,
+    });
 
-//   await db.insert(category).values(categoriesData);
-//   console.log("✅ Categories inserted");
+    for (const sub of cat.subCategories) {
+      const subId = randomUUID();
 
-//   const getCategoryId = (prefix: string) =>
-//     categoriesData.find(c => c.name.startsWith(prefix))?.id ?? "";
+      await db.insert(subCategories).values({
+        id: subId,
+        categoryId: catId,
+        title: sub.title,
+        description: sub.description,
+      });
 
-//   const subCategoriesData = [
-//     { categoryId: getCategoryId("Category 1"), name: "Natural Gas Boiler", description: "Stationary combustion" },
-//     { categoryId: getCategoryId("Category 1"), name: "Coal Boiler", description: "Stationary combustion" },
-//     { categoryId: getCategoryId("Category 1"), name: "Diesel Generator", description: "Mobile combustion" },
-//     { categoryId: getCategoryId("Category 2"), name: "Grid Electricity", description: "National grid electricity" },
-//     { categoryId: getCategoryId("Category 2"), name: "Certified Renewable Electricity", description: "Green certified energy" },
-//     { categoryId: getCategoryId("Category 3"), name: "Truck Transport", description: "Road freight" },
-//     { categoryId: getCategoryId("Category 3"), name: "Cargo Ships", description: "Sea freight" },
-//     { categoryId: getCategoryId("Category 3"), name: "Cargo Aircraft", description: "Air freight" },
-//     { categoryId: getCategoryId("Category 4"), name: "Raw Material Consumption", description: "Material-based emissions" },
-//     { categoryId: getCategoryId("Category 4"), name: "Purchased Services", description: "Consulting, cleaning, logistics" },
-//     { categoryId: getCategoryId("Category 4"), name: "Waste Disposal", description: "Waste treatment emissions" },
-//   ].map(withMeta);
+      for (const src of sub.sources) {
+        const srcId = randomUUID();
 
-//   await db.insert(subCategory).values(subCategoriesData);
-//   console.log("✅ SubCategories inserted");
+        await db.insert(emissionSources).values({
+          id: srcId,
+          subCategoryId: subId,
+          title: src.title,
+        });
 
-//   const getSubCategoryId = (name: string) =>
-//     subCategoriesData.find(sc => sc.name === name)?.id ?? "";
+        for (const tag of sub.tags) {
+          await db.insert(emissionSourceTags).values({
+            sourceId: srcId,
+            tag,
+          });
+        }
+      }
+    }
+  }
 
-//   const emissionFactorsData = [
-//     { subCategoryName: "Natural Gas Boiler", gas: "CO2", value: "2.02", unit: "m3", source: "IPCC 2006", year: 2023 },
-//     { subCategoryName: "Coal Boiler", gas: "CO2", value: "2.93", unit: "kg", source: "IPCC 2006", year: 2023 },
-//     { subCategoryName: "Grid Electricity", gas: "CO2", value: "0.418", unit: "kWh", source: "National Grid", year: 2023 },
-//     { subCategoryName: "Certified Renewable Electricity", gas: "CO2", value: "0.05", unit: "kWh", source: "Green Registry", year: 2023 },
-//     { subCategoryName: "Truck Transport", gas: "CO2", value: "0.12", unit: "ton-km", source: "DEFRA", year: 2023 },
-//     { subCategoryName: "Cargo Ships", gas: "CO2", value: "0.015", unit: "ton-km", source: "IMO", year: 2023 },
-//     { subCategoryName: "Cargo Aircraft", gas: "CO2", value: "0.5", unit: "ton-km", source: "ICAO", year: 2023 },
-//     { subCategoryName: "Raw Material Consumption", gas: "CO2", value: "1.8", unit: "kg", source: "Ecoinvent", year: 2023 },
-//     { subCategoryName: "Purchased Services", gas: "CO2", value: "0.25", unit: "USD", source: "Scope 3 Estimation", year: 2023 },
-//     { subCategoryName: "Waste Disposal", gas: "CH4", value: "0.8", unit: "kg", source: "IPCC Waste", year: 2023 },
-//   ].map(ef => ({
-//     id: randomUUID(),
-//     subCategoryId: getSubCategoryId(ef.subCategoryName),
-//     ...ef,
-//   }));
+  console.log("✅ Emission categories seeded successfully!");
+}
 
-//   await db.insert(emissionFactor).values(emissionFactorsData);
-//   console.log("✅ Emission Factors inserted");
-
-//   console.log("🌱 Full seed completed successfully!");
-//   process.exit(0);
-// }
-
-// seed().catch(err => {
-//   console.error("❌ Seed failed", err);
-//   process.exit(1);
-// });
+seedEmissionData();
