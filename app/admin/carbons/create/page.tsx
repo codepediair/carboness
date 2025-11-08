@@ -22,5 +22,6 @@ export default async function CarbonCreatePage() {
   if (session === null) {
     return redirect("/login");
   }
-  return <EmissionForm categories={cats} />;
+  const userId = session?.user?.id ?? null;
+  return <EmissionForm categories={cats} userId={userId} />;
 }
