@@ -13,12 +13,8 @@ import { Separator } from "@/components/ui/separator";
 // from form are validated here). We keep attachments flexible (any) to allow
 // File objects or strings depending on how you send them.
 const emissionFormSchema = z.object({
-  values: z.record(
-    z.string(),
-    z.string().refine((s) => s !== "" && !Number.isNaN(Number(s)), {
-      message: "Required numeric value",
-    })
-  ),
+  // Allow values to be optional strings — we'll filter/validate them on submit
+  values: z.record(z.string(), z.string().optional()),
   attachments: z.any().optional(),
 });
 
@@ -42,8 +38,11 @@ export default function EmissionForm({ categories, userId }: { categories: any[]
 
   const onSubmit = async (data: InputSchema) => {
     // Convert values from validated numeric strings to numbers before sending
+    // Filter out empty / undefined entries so missing fields don't block submission
     const numericValues: Record<string, number> = Object.fromEntries(
-      Object.entries(data.values).map(([k, v]) => [k, Number(v)])
+      Object.entries(data.values)
+        .filter(([, v]) => v !== undefined && v !== null && String(v).trim() !== "")
+        .map(([k, v]) => [k, Number(v)])
     );
 
     const isFinal = step === categories.length - 1;
