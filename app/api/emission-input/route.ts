@@ -21,13 +21,33 @@ export async function POST(req: Request) {
     const inserted: string[] = [];
 
     for (const [sourceId, inputValue] of Object.entries(body.values)) {
-      // Find an activityType associated with this emission source
+      // Log the incoming value for debugging
+      console.log("emission-input POST - sourceId", sourceId, "value", inputValue);
+
+      // Try to find an activityType associated with this emission source
       const at = await db.select().from(activityTypes).where(eq(activityTypes.sourceId, sourceId)).limit(1);
+      let activityId: string;
       if (!at.length) {
-        // skip if no activity type found
-        continue;
+        // If no activity type exists for this source, create a minimal one so inputs can reference it
+        activityId = randomUUID();
+        try {
+          await db.insert(activityTypes).values({
+            id: activityId,
+            sourceId: sourceId,
+            title: `Auto-created activity for ${sourceId}`,
+            description: `Automatically created activity type for source ${sourceId}`,
+            unit: "tCO2e",
+            emissionFactor: "0.0",
+            emissionFactorSource: "",
+            emissionFactorYear: null,
+          });
+        } catch (err) {
+          console.error("Failed to create activityType for source", sourceId, err);
+          continue;
+        }
+      } else {
+        activityId = (at[0] as any).id;
       }
-      const activityId = (at[0] as any).id;
       const id = randomUUID();
       await db.insert(emissionInputs).values({
         id,
