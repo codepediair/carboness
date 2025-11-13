@@ -1,5 +1,4 @@
 import { auth } from "@/lib/auth";
-import data from "./data.json";
 import { ChartAreaInteractive } from "@/components/sidebar/chart-area-interactive";
 import { DataTable } from "@/components/sidebar/data-table";
 import { SectionCards } from "@/components/sidebar/section-cards";
@@ -14,13 +13,38 @@ export default async function AdminIndexPage() {
   if (session === null) {
     return redirect("/login");
   }
+
+  // Fetch emission input records from the database
+  let emissionData = [];
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/emission-inputs`,
+      { cache: "no-store" }
+    );
+    const result = await response.json();
+    if (result.success && result.data) {
+      // Transform the data to match the DataTable schema
+      emissionData = result.data.map((item: any, index: number) => ({
+        id: index + 1,
+        header: item.activityTitle || `Emission Input ${item.id}`,
+        type: "Emission Input",
+        status: "Done",
+        target: item.inputValue || "0",
+        limit: item.unit || "tCO2e",
+        reviewer: item.userId || "System",
+      }));
+    }
+  } catch (error) {
+    console.error("Failed to fetch emission inputs:", error);
+  }
+
   return (
     <>
       <SectionCards />
       <div className="px-4 lg:px-6">
         <ChartAreaInteractive />
       </div>
-      <DataTable data={data} />
+      <DataTable data={emissionData} />
     </>
   );
 }
