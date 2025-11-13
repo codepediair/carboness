@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useEffect, useState } from "react"
 import {
   closestCenter,
   DndContext,
@@ -342,6 +343,7 @@ export function DataTable({
   data: z.infer<typeof schema>[]
 }) {
   const [data, setData] = React.useState(() => initialData)
+  const [isLoading, setIsLoading] = useState(true)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -353,6 +355,40 @@ export function DataTable({
     pageIndex: 0,
     pageSize: 10,
   })
+
+  // Fetch emission input data from API on mount
+  useEffect(() => {
+    const fetchEmissionData = async () => {
+      try {
+        const response = await fetch("/api/emission-inputs", {
+          cache: "no-store",
+        })
+        const result = await response.json()
+
+        if (result.success && result.data && Array.isArray(result.data)) {
+          // Transform API data to table schema
+          const transformedData = result.data.map(
+            (item: any, index: number) => ({
+              id: index + 1,
+              header: item.activityTitle || `Emission Input ${item.id}`,
+              type: "Emission Input",
+              status: "Done",
+              target: item.inputValue || "0",
+              limit: item.unit || "tCO2e",
+              reviewer: item.userId || "System",
+            })
+          )
+          setData(transformedData)
+        }
+      } catch (error) {
+        console.error("Failed to fetch emission data:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchEmissionData()
+  }, [])
   const sortableId = React.useId()
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
@@ -507,7 +543,16 @@ export function DataTable({
                 ))}
               </TableHeader>
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
-                {table.getRowModel().rows?.length ? (
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center"
+                    >
+                      Loading emission data...
+                    </TableCell>
+                  </TableRow>
+                ) : table.getRowModel().rows?.length ? (
                   <SortableContext
                     items={dataIds}
                     strategy={verticalListSortingStrategy}
@@ -522,7 +567,7 @@ export function DataTable({
                       colSpan={columns.length}
                       className="h-24 text-center"
                     >
-                      No results.
+                      No emission inputs found.
                     </TableCell>
                   </TableRow>
                 )}
