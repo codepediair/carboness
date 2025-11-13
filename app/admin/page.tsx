@@ -22,7 +22,9 @@ export default async function AdminIndexPage() {
       { cache: "no-store" }
     );
     const result = await response.json();
-    if (result.success && result.data) {
+    console.log("[Admin Page] Fetched emission inputs:", result);
+    
+    if (result.success && result.data && Array.isArray(result.data)) {
       // Transform the data to match the DataTable schema
       emissionData = result.data.map((item: any, index: number) => ({
         id: index + 1,
@@ -33,9 +35,12 @@ export default async function AdminIndexPage() {
         limit: item.unit || "tCO2e",
         reviewer: item.userId || "System",
       }));
+      console.log("[Admin Page] Transformed", emissionData.length, "records");
+    } else {
+      console.warn("[Admin Page] Response was not successful or missing data:", result);
     }
   } catch (error) {
-    console.error("Failed to fetch emission inputs:", error);
+    console.error("[Admin Page] Failed to fetch emission inputs:", error);
   }
 
   return (

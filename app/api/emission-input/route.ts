@@ -51,7 +51,7 @@ export async function POST(req: Request) {
       const id = randomUUID();
       await db.insert(emissionInputs).values({
         id,
-        activityId: String(activityId),
+        activityId: activityId as any, // Store as UUID, not string
         userId: body.userId,
         inputValue: String(inputValue),
         notes: body.notes ?? null,

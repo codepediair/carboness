@@ -25,13 +25,15 @@ export async function GET(req: Request) {
         eq(emissionInputs.activityId, activityTypes.id)
       );
 
+    console.log(`[emission-inputs GET] Found ${allInputs.length} records`);
+
     return NextResponse.json({
       success: true,
       data: allInputs,
       count: allInputs.length,
     });
   } catch (err) {
-    console.error(err);
+    console.error("[emission-inputs GET] Error:", err);
     return NextResponse.json(
       { error: "Failed to fetch emission inputs", success: false },
       { status: 500 }
