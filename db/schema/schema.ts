@@ -11,7 +11,6 @@ import {
 } from "drizzle-orm/pg-core";
 import { user } from "./auth-schema";
 // enums
-export const unitEnum = pgEnum("unit", ["kWh", "Liter", "Ton-kw", "tCO2e"]);
 
 export const categories = pgTable("categories", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -40,7 +39,7 @@ export const activityTypes = pgTable("activity_types", {
   id: uuid("id").primaryKey().defaultRandom(),
   title: text("title").notNull(),
   description: text("description").default(""),
-  unit: unitEnum().notNull(),
+  unit: text("unit").default(""),
   emissionFactor: numeric("emission_factor", {
     precision: 12,
     scale: 4,
