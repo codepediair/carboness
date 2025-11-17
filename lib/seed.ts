@@ -1,5 +1,5 @@
-import { seedCategories } from "./seeds/01-categories";
-import { seedSubcategoriesForCategory1 } from "./seeds/02-subCategories";
+import { seedCategories } from "@/db/seeds/01-categories";
+import { seedSubcategoriesForCategory1 } from "@/db/seeds/02-subCategories";
 import { db } from "@/db/drizzle";
 
 async function main() {
