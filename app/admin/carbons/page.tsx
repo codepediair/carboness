@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
 
 export default async function CarbonCategoryPage() {
   const allCategories = await db.select().from(categories);
@@ -26,15 +27,20 @@ export default async function CarbonCategoryPage() {
       <h1 className="text-3xl font-bold">All Categories</h1>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {allCategories.map((category) => (
-          <Card key={category.id} className="hover:shadow-md transaction">
-            <CardHeader>
-              <CardTitle>{category.title}</CardTitle>
-              <CardDescription>{category.description}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">ID: {category.id}</p>
-            </CardContent>
-          </Card>
+          <Link
+            key={category.id}
+            href={`carbons/create?categoryId=${category.id}`}
+            className="hover:no-underline"
+          >
+            <Card key={category.id} className="hover:shadow-md transaction">
+              <CardHeader>
+                <CardTitle>{category.title}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CardDescription>{category.description}</CardDescription>
+              </CardContent>
+            </Card>
+          </Link>
         ))}
       </div>
     </div>
